@@ -1,0 +1,11 @@
+name: Detect Electronic Components on Smartphone Camera
+description: This example showcases object detection within a live feed from a smartphone's camera.
+ports:
+- 8080
+bricks:
+- arduino:video_object_detection:
+    model: ei-model-1077564-1
+    devices:
+    - remote_camera_0
+- arduino:web_ui: {}
+icon: 📽️
