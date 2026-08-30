@@ -13,9 +13,9 @@ from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from arduino.app_peripherals.camera import WebSocketCamera
 
-# ---------- Pin config: Mapeo oficial de pines ----------
+# ---------- Pin config: Official pin mapping ----------
 PIN_CONFIG = {
-    # JDIGITAL
+    # DIGITAL
     "D21": {"active_low": False},
     "D20": {"active_low": False},
     "D13": {"active_low": False},
@@ -32,14 +32,14 @@ PIN_CONFIG = {
     "D2":  {"active_low": False},  # Resistencias
     "D1":  {"active_low": False},
     "D0":  {"active_low": False},
-    # JANALOG
+    # ANALOG
     "A0":  {"active_low": False},
     "A1":  {"active_low": False},
     "A2":  {"active_low": False},
     "A3":  {"active_low": False},
     "A4":  {"active_low": False},
     "A5":  {"active_low": False},
-    # STM LEDS INTEGRADOS
+    # STM INTEGRATED LEDS
     "LED3_R": {"active_low": True},
     "LED3_G": {"active_low": True},
     "LED3_B": {"active_low": True},
@@ -49,19 +49,19 @@ PIN_CONFIG = {
 }
 PIN_NAMES = tuple(PIN_CONFIG.keys())
 
-# Almacena estados lógicos (True = ON)
+# Stores logical states (True = ON)
 pin_states = {name: False for name in PIN_NAMES}
 
 def _iso_now() -> str:
     return datetime.now(UTC).isoformat()
 
 def _state_for_hw(name: str, logical_state: bool) -> bool:
-    """Aplica inversión active-low según la configuración del hardware."""
+    """Apply active-low investment according to the hardware configuration."""
     cfg = PIN_CONFIG.get(name, {})
     return (not logical_state) if cfg.get("active_low") else logical_state
 
 def set_hardware_pin(name: str, logical_state: bool):
-    """Función para actualizar el estado del pin vía Arduino Bridge."""
+    """Function to update pin status via Arduino Bridge."""
     if name not in PIN_NAMES:
         return
     
@@ -74,12 +74,12 @@ def set_hardware_pin(name: str, logical_state: bool):
         print(f"[{_iso_now()}] Error cambiando pin {name}: {e}")
 
 def reset_detection_pins():
-    """Apaga las salidas asignadas a los componentes."""
+    """Turn off the outputs assigned to the components."""
     set_hardware_pin("D2", False)
     set_hardware_pin("D3", False)
     set_hardware_pin("D4", False)
 
-# ---------- Configuración de Cámara e Interfaz Web ----------
+# ---------- Camera and Web Interface Setup ----------
 def generate_secret() -> str:
     characters = string.digits
     return ''.join(secrets.choice(characters) for _ in range(6))
@@ -104,15 +104,15 @@ ui.on_connect(lambda sid: ui.send_message("welcome", {
 
 ui.on_message("override_th", lambda sid, threshold: detection.override_threshold(threshold))
 
-# ---------- Callback de Detección de Objetos ----------
+# ---------- Object Detection Callback ----------
 def send_detections_to_ui(detections: dict):
-    # Apagamos los pines al inicio de cada evaluación
+    # We turn off the pins at the start of each evaluation
     reset_detection_pins()
 
     for key, values in detections.items():
         label = key.lower()
 
-        # Si el modelo detecta el componente con confianza suficiente:
+        # If the model detects the component with sufficient confidence:
         if len(values) > 0:
             if "resistor" in label or "resistencia" in label:
                 set_hardware_pin("D2", True)
@@ -121,7 +121,7 @@ def send_detections_to_ui(detections: dict):
             elif "transistor" in label:
                 set_hardware_pin("D4", True)
 
-        # Transmitir evento a la UI para renderizar las cajas delimitadoras
+        # Transmit event to UI to render bounding boxes
         for value in values:
             entry = {
                 "content": key,
